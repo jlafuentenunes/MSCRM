@@ -1,0 +1,13 @@
+{
+    "name": "ms360/crm-backend",
+    "description": "CRM Backend for Ms360",
+    "authors": [
+        {
+            "name": "Antigravity"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^7.0",
+        "webklex/php-imap": "^6.2"
+    }
+}
