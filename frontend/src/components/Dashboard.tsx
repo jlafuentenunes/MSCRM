@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Plus, Trash2, 
   Menu, X, Save, Loader2, ArrowRight,
-  Bell, Info, AlertTriangle, AlertCircle
+  Bell, Info, AlertTriangle, AlertCircle, LayoutDashboard
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -124,8 +124,18 @@ const Dashboard: React.FC = () => {
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 <header className="h-16 lg:h-20 bg-white border-b border-slate-200 px-4 lg:px-12 flex items-center justify-between sticky top-0 z-30">
-                    <button className="lg:hidden p-2 -ml-2 text-slate-400" onClick={() => setIsMenuOpen(true)}><Menu size={20} /></button>
-                    <h2 className="text-sm lg:text-xl font-black text-slate-800 flex-1 lg:flex-none uppercase tracking-tight">MS<span className="text-blue-600">360</span> Dashboard</h2>
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <button className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(true)}>
+                            <Menu size={20} />
+                        </button>
+                        <div className="hidden sm:flex w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg lg:rounded-xl items-center justify-center text-white shadow-lg shadow-blue-100 shrink-0">
+                            <LayoutDashboard size={16} className="lg:w-5 lg:h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm lg:text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Dashboard</h2>
+                            <p className="hidden xs:block text-[8px] lg:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Visão Geral do Negócio</p>
+                        </div>
+                    </div>
                     
                     <div className="flex items-center gap-3 lg:gap-6">
                         <div className="relative mr-2">

@@ -107,45 +107,12 @@ function runAudit($conn) {
         }
     }
 
-    // C. Verificar Emails Não Lidos (Correio)
-    $stmtM = $conn->query("SELECT * FROM mail_settings WHERE user_id = 1 LIMIT 1");
-    $cfg = $stmtM->fetch();
-    
+    /* 
     if ($cfg) {
         try {
-            // Nota: Este check pode demorar 1-2s dependendo do servidor de mail
-            $cm = new \Webklex\PHPIMAP\ClientManager();
-            $client = $cm->make([
-                'host'          => $cfg['imap_host'],
-                'port'          => $cfg['imap_port'],
-                'encryption'    => 'ssl',
-                'validate_cert' => true,
-                'username'      => $cfg['imap_user'],
-                'password'      => $cfg['imap_pass'],
-                'protocol'      => 'imap'
-            ]);
-
-            $client->connect();
-            $folder = $client->getFolder("INBOX");
-            $unreadCount = $folder->query()->unseen()->count();
-
-            if ($unreadCount > 0) {
-                $tituloM = "Novas Mensagens";
-                $msgM = "Tens $unreadCount emails por ler na tua caixa de correio.";
-                
-                // Evitar spam: Notificar apenas se não houver alerta de email hoje ou se o número mudou
-                $checkM = $conn->prepare("SELECT id, mensagem FROM notificacoes WHERE titulo = ? AND data_criacao >= CURDATE() ORDER BY data_criacao DESC LIMIT 1");
-                $checkM->execute([$tituloM]);
-                $lastNotif = $checkM->fetch();
-                
-                if (!$lastNotif || $lastNotif['mensagem'] !== $msgM) {
-                    $conn->prepare("INSERT INTO notificacoes (tipo, titulo, mensagem) VALUES ('info', ?, ?)")
-                         ->execute([$tituloM, $msgM]);
-                }
-            }
-        } catch (\Exception $e) {
-            // Não bloqueamos a UI se o mail falhar, apenas ignoramos silenciosamente na auditoria
-        }
+            // ... (Commented to avoid IMAP session locking)
+        } catch (\Exception $e) {}
     }
+    */
 }
 ?>

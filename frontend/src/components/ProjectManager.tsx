@@ -43,6 +43,7 @@ const ProjectManager: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [view, setView] = useState<'cards' | 'timeline'>('cards');
     
     // Form States
     const [newProject, setNewProject] = useState({
@@ -127,66 +128,106 @@ const ProjectManager: React.FC = () => {
                         </div>
                     </div>
                     
-                    <button onClick={() => setIsCreateModalOpen(true)} className="bg-slate-900 text-white px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl font-black uppercase text-[10px] lg:text-xs tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-slate-200 leading-none">
-                        <Plus size={14} /> <span className="hidden sm:inline">Novo Projeto</span><span className="sm:hidden">Novo</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <div className="flex bg-slate-100 p-1 rounded-xl mr-2">
+                            <button onClick={() => setView('cards')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${view === 'cards' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Cards</button>
+                            <button onClick={() => setView('timeline')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${view === 'timeline' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Timeline</button>
+                        </div>
+                        <button onClick={() => setIsCreateModalOpen(true)} className="bg-slate-900 text-white px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl font-black uppercase text-[10px] lg:text-xs tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-slate-200 leading-none">
+                            <Plus size={14} /> <span className="hidden sm:inline">Novo Projeto</span><span className="sm:hidden">Novo</span>
+                        </button>
+                    </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-6 lg:p-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {loading && projects.length === 0 ? (
-                            <div className="col-span-full h-64 flex flex-col items-center justify-center gap-4">
-                                <Loader2 className="animate-spin text-blue-600" size={40} />
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">A carregar portfólio...</p>
-                            </div>
-                        ) : projects.length === 0 ? (
-                            <div className="col-span-full bg-white rounded-[40px] border-2 border-dashed border-slate-200 p-20 text-center">
-                                <Briefcase className="mx-auto text-slate-200 mb-6 focus:animate-bounce" size={64} />
-                                <h3 className="text-xl font-black text-slate-900 uppercase italic">Nenhum Projeto Ativo</h3>
-                                <p className="text-slate-400 text-sm mt-2 max-w-sm mx-auto">Começa a organizar o teu fluxo de trabalho criando o teu primeiro projeto agora.</p>
-                            </div>
-                        ) : projects.map(proj => (
-                            <div key={proj.id} onClick={() => { setSelectedProject(proj); fetchTasks(proj.id); }} className="group bg-white rounded-[40px] border border-slate-100 p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all cursor-pointer relative overflow-hidden animate-in zoom-in-95 duration-300">
-                                <div className="absolute top-0 right-0 p-8">
-                                    <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(proj.status)}`}>
-                                        {proj.status}
-                                    </span>
-                                </div>
-                                
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black italic shadow-sm" style={{ backgroundColor: proj.servico_cor || '#3b82f6' }}>
-                                        {proj.servico_nome?.charAt(0) || 'P'}
+                <div className="flex-1 overflow-y-auto p-6 lg:p-12 animate-in fade-in duration-500">
+                    {loading && projects.length === 0 ? (
+                        <div className="h-64 flex flex-col items-center justify-center gap-4">
+                            <Loader2 className="animate-spin text-blue-600" size={40} />
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">A carregar portfólio...</p>
+                        </div>
+                    ) : projects.length === 0 ? (
+                        <div className="bg-white rounded-[40px] border-2 border-dashed border-slate-200 p-20 text-center">
+                            <Briefcase className="mx-auto text-slate-200 mb-6 focus:animate-bounce" size={64} />
+                            <h3 className="text-xl font-black text-slate-900 uppercase italic">Nenhum Projeto Ativo</h3>
+                            <p className="text-slate-400 text-sm mt-2 max-w-sm mx-auto">Começa a organizar o teu fluxo de trabalho criando o teu primeiro projeto agora.</p>
+                        </div>
+                    ) : view === 'cards' ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {projects.map(proj => (
+                                <div key={proj.id} onClick={() => { setSelectedProject(proj); fetchTasks(proj.id); }} className="group bg-white rounded-[40px] border border-slate-100 p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all cursor-pointer relative overflow-hidden animate-in zoom-in-95 duration-300">
+                                    <div className="absolute top-0 right-0 p-8">
+                                        <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(proj.status)}`}>
+                                            {proj.status}
+                                        </span>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{proj.lead_empresa || proj.lead_nome}</p>
-                                        <p className="text-[9px] text-blue-600 font-bold uppercase mt-1">{proj.servico_nome}</p>
+                                    
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black italic shadow-sm" style={{ backgroundColor: proj.servico_cor || '#3b82f6' }}>
+                                            {proj.servico_nome?.charAt(0) || 'P'}
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{proj.lead_empresa || proj.lead_nome}</p>
+                                            <p className="text-[9px] text-blue-600 font-bold uppercase mt-1">{proj.servico_nome}</p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tighter leading-tight uppercase italic mb-4 group-hover:text-blue-600 transition-colors">{proj.nome}</h3>
-                                
-                                <div className="space-y-4 mb-8">
-                                    <div className="flex justify-between items-end mb-1">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Progresso Geral</span>
-                                        <span className="text-sm font-black text-slate-900">{proj.progresso}%</span>
+                                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter leading-tight uppercase italic mb-4 group-hover:text-blue-600 transition-colors">{proj.nome}</h3>
+                                    
+                                    <div className="space-y-4 mb-8">
+                                        <div className="flex justify-between items-end mb-1">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Progresso Geral</span>
+                                            <span className="text-sm font-black text-slate-900">{proj.progresso}%</span>
+                                        </div>
+                                        <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-600 transition-all duration-1000 ease-out shadow-sm" style={{ width: `${proj.progresso}%` }} />
+                                        </div>
                                     </div>
-                                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-600 transition-all duration-1000 ease-out shadow-sm" style={{ width: `${proj.progresso}%` }} />
+
+                                    <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <Calendar size={14} />
+                                            <span className="text-[10px] font-bold uppercase">{new Date(proj.data_inicio).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 group-hover:gap-2 transition-all text-blue-600 font-black text-[10px] uppercase tracking-widest">
+                                            Tasks <ChevronRight size={14} />
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                                    <div className="flex items-center gap-2 text-slate-400">
-                                        <Calendar size={14} />
-                                        <span className="text-[10px] font-bold uppercase">{new Date(proj.data_inicio).toLocaleDateString()}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 group-hover:gap-2 transition-all text-blue-600 font-black text-[10px] uppercase tracking-widest">
-                                        Tasks <ChevronRight size={14} />
-                                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-[40px] border border-slate-100 p-8 lg:p-12 shadow-xl overflow-x-auto">
+                            <div className="min-w-[800px]">
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10 italic flex items-center gap-2">
+                                    <Calendar className="text-blue-600" size={18} /> Cronograma de Entregas
+                                </h3>
+                                <div className="space-y-12">
+                                    {projects.map(proj => (
+                                            <div key={proj.id} className="relative group/line" onClick={() => { setSelectedProject(proj); fetchTasks(proj.id); }}>
+                                                <div className="flex items-center justify-between mb-3 pr-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: proj.servico_cor || '#3b82f6' }} />
+                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest group-hover/line:text-blue-600 transition-colors cursor-pointer">{proj.nome}</span>
+                                                    </div>
+                                                    <span className="text-[9px] font-bold text-slate-400">{new Date(proj.data_inicio).toLocaleDateString()} - {new Date(proj.data_fim_prevista).toLocaleDateString()}</span>
+                                                </div>
+                                                <div className="h-10 w-full bg-slate-50 rounded-2xl relative overflow-hidden group-hover/line:bg-slate-100 transition-colors cursor-pointer">
+                                                    <div 
+                                                        className="absolute top-2 bottom-2 bg-blue-600 rounded-lg shadow-lg flex items-center px-4 overflow-hidden" 
+                                                        style={{ 
+                                                            left: '5%', // Simplificado para demo, em real seria calculado via % do mês
+                                                            width: `${Math.min(90, 20 + (proj.progresso * 0.7))}%` 
+                                                        }}
+                                                    >
+                                                        <span className="text-[8px] font-black text-white uppercase tracking-tighter whitespace-nowrap">{proj.progresso}% Completo</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </main>
 

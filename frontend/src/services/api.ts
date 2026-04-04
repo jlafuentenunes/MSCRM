@@ -6,7 +6,7 @@ import axios from 'axios';
  * Agora ligado ao túnel público: 
  * leg-exclude-lean-encourage.trycloudflare.com
  */
-const API_URL = "https://leg-exclude-lean-encourage.trycloudflare.com";
+const API_URL = "https://lap-rebecca-give-durham.trycloudflare.com";
 
 console.log("MS360 API Cloud Ativa em:", API_URL);
 

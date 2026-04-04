@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Trash2, Edit2, 
   Menu, X, Save, 
-  ChevronRight, HelpCircle,
+  ChevronRight, HelpCircle, Briefcase,
   Layout, TrendingUp, Shield, Settings, Terminal,
   Code, Megaphone, Smartphone, Box
 } from 'lucide-react';
@@ -77,11 +77,16 @@ const ServiceTypes: React.FC = () => {
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 <header className="h-16 lg:h-20 bg-white border-b border-slate-200 px-4 lg:px-12 flex items-center justify-between sticky top-0 z-30">
-                    <div className="flex items-center gap-4">
-                        <button className="lg:hidden p-2 text-slate-400" onClick={() => setIsMenuOpen(true)}><Menu size={20}/></button>
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <button className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(true)}>
+                            <Menu size={20} />
+                        </button>
+                        <div className="hidden sm:flex w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-lg lg:rounded-xl items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0">
+                            <Briefcase size={16} className="lg:w-5 lg:h-5" />
+                        </div>
                         <div>
-                             <h2 className="text-sm lg:text-xl font-black text-slate-800 tracking-tight leading-none uppercase italic underline decoration-blue-500 decoration-4">Service <span className="text-blue-600">Types</span></h2>
-                             <p className="text-[9px] lg:text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Portfólio MS360</p>
+                            <h2 className="text-sm lg:text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Tipos de Serviço</h2>
+                            <p className="hidden xs:block text-[8px] lg:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Portfólio MS360</p>
                         </div>
                     </div>
                     <button onClick={() => { setEditing(null); setNewService({ nome:'', descricao:'', icone:'Terminal', cor:'#3b82f6'}); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-100 flex items-center gap-2 transition-all active:scale-95">

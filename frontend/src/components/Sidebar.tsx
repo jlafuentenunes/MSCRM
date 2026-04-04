@@ -17,13 +17,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     { name: 'Leads', path: '/dashboard', icon: Users },
     { name: 'Faturação', path: '/billing', icon: FileText },
     { name: 'Suporte', path: '/tickets', icon: Ticket },
-    { name: 'Correio', path: '/mail', icon: Mail },
+    { 
+      name: 'Correio', 
+      path: '/mail', 
+      icon: Mail,
+      subItems: [
+        { name: 'Entrada', path: '/mail?folder=INBOX' },
+        { name: 'Enviados', path: '/mail?folder=Sent' },
+        { name: 'Lixo', path: '/mail?folder=Trash' },
+        { name: 'Rascunhos', path: '/mail?folder=Drafts' },
+      ]
+    },
     { name: 'Projetos', path: '/projects', icon: Briefcase },
     { name: 'Automações', path: '/automations', icon: Zap },
     { name: 'Serviços', path: '/services', icon: Box },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/mail') return location.pathname.startsWith('/mail');
+    return location.pathname === path;
+  };
 
   return (
     <>
@@ -45,25 +58,50 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
           </span>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 mt-4">
+        <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const active = isActive(item.path);
+            
             return (
-              <button
-                key={item.path}
-                onClick={() => {
-                  navigate(item.path);
-                  setIsMenuOpen(false);
-                }}
-                className={`w-full flex items-center px-5 py-4 rounded-2xl font-bold transition-all group ${
-                  isActive(item.path)
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-100'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-                }`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                {item.name}
-              </button>
+              <div key={item.path} className="space-y-1">
+                <button
+                  onClick={() => {
+                    navigate(item.path);
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center px-5 py-4 rounded-2xl font-bold transition-all group ${
+                    active
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-100'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  <span className="flex-1 text-left">{item.name}</span>
+                </button>
+                
+                {/* Sub-itens (Apenas se o item pai estiver ativo ou se quisermos mostrar sempre) */}
+                {item.subItems && active && (
+                  <div className="pl-12 space-y-1 py-2">
+                    {item.subItems.map((sub) => (
+                      <button
+                        key={sub.path}
+                        onClick={() => {
+                          navigate(sub.path);
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full text-left py-2 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                          location.search.includes(sub.path.split('?')[1])
+                            ? 'text-blue-600 bg-blue-50'
+                            : 'text-slate-400 hover:text-blue-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {sub.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

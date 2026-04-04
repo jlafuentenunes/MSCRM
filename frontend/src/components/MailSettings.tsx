@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Zap, Save, Loader2, Mail, Server, ShieldCheck, 
-  Menu, Bell, Check, Info, ShieldAlert
+  Menu, Check, ShieldAlert
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from './Sidebar';
 
 const MailSettings: React.FC = () => {
-    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -89,13 +87,17 @@ const MailSettings: React.FC = () => {
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 <header className="h-16 lg:h-20 bg-white border-b border-slate-200 px-4 lg:px-12 flex items-center justify-between sticky top-0 z-30">
-                    <button className="lg:hidden p-2 -ml-2 text-slate-400" onClick={() => setIsMenuOpen(true)}>
-                        <Menu size={20} />
-                    </button>
-                    <h2 className="text-sm lg:text-xl font-black text-slate-800 uppercase tracking-tight">Configuração de <span className="text-blue-600">Email</span></h2>
-                    
-                    <div className="flex items-center gap-3">
-                         <Mail className="text-slate-200 w-8 h-8"/>
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <button className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(true)}>
+                            <Menu size={20} />
+                        </button>
+                        <div className="hidden sm:flex w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-lg lg:rounded-xl items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0">
+                            <Mail size={16} className="lg:w-5 lg:h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm lg:text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Definições de Email</h2>
+                            <p className="hidden xs:block text-[8px] lg:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Configuração de Servidores IMAP/SMTP</p>
+                        </div>
                     </div>
                 </header>
 

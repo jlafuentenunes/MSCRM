@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Zap, Mail, Inbox, Send, Trash, Edit3, Search, 
   Menu, X, RefreshCcw, Loader2, Star, 
-  Paperclip, ChevronRight, User, Calendar, MoreVertical
+  Paperclip, Calendar, MoreVertical
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from './Sidebar';
@@ -20,28 +20,83 @@ const Mailbox: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState<Message[]>([]);
+    const [error, setError] = useState<string | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
     const [activeFolder, setActiveFolder] = useState('INBOX');
+    const [isComposeOpen, setIsComposeOpen] = useState(false);
+    const [composeData, setComposeData] = useState({ to: '', subject: '', body: '' });
+    const [sending, setSending] = useState(false);
 
-    const fetchMessages = async () => {
+    const fetchMessages = async (folderName: string = 'INBOX') => {
         setLoading(true);
+        setError(null);
         try {
-            const res = await api.get('/backend/mailbox.php?action=list_messages');
+            const res = await api.get(`/backend/mailbox.php?action=list_messages&folder=${folderName}`);
             if (res.data.status === 'success') {
                 setMessages(res.data.messages || []);
             } else {
-                console.error("Erro da API:", res.data.message);
+                setError(res.data.message);
             }
         } catch (err) {
-            console.error("Erro ao carregar mensagens:", err);
+            setError("Falha na ligação ao backend.");
         } finally {
             setLoading(false);
         }
     };
 
+    const handleDelete = async (uid: number) => {
+        if (!window.confirm("Tem a certeza que pretende eliminar este email?")) return;
+        try {
+            const res = await api.get(`/backend/mailbox.php?action=delete_message&uid=${uid}&folder=${activeFolder}`);
+            if (res.data.status === 'success') {
+                setSelectedMessage(null);
+                fetchMessages(activeFolder);
+            } else {
+                alert("Erro ao eliminar: " + res.data.message);
+            }
+        } catch (err) {
+            alert("Erro de ligação ao servidor.");
+        }
+    };
+
+    const handleSend = async () => {
+        if (!composeData.to || !composeData.body) {
+            alert("Por favor, preencha o destinatário e a mensagem.");
+            return;
+        }
+        setSending(true);
+        try {
+            const res = await api.post('/backend/mailbox.php?action=send_message', composeData);
+            if (res.data.status === 'success') {
+                alert("Email enviado com sucesso!");
+                setIsComposeOpen(false);
+                setComposeData({ to: '', subject: '', body: '' });
+            } else {
+                alert("Erro ao enviar: " + res.data.message);
+            }
+        } catch (err) {
+            alert("Erro de ligação.");
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const openReply = () => {
+        if (!selectedMessage) return;
+        setComposeData({
+            to: selectedMessage.from,
+            subject: `Re: ${selectedMessage.subject}`,
+            body: `\n\n--- Em ${selectedMessage.date}, ${selectedMessage.from} escreveu: ---\n\n`
+        });
+        setIsComposeOpen(true);
+    };
+
     useEffect(() => {
-        fetchMessages();
-    }, []);
+        const query = new URLSearchParams(window.location.search);
+        const folder = query.get('folder') || 'INBOX';
+        setActiveFolder(folder);
+        fetchMessages(folder);
+    }, [window.location.search]);
 
     return (
         <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
@@ -49,53 +104,38 @@ const Mailbox: React.FC = () => {
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Mobile Header */}
-                <header className="h-16 lg:px-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-30 lg:hidden">
-                    <button className="p-2 -ml-2 text-slate-400" onClick={() => setIsMenuOpen(true)}>
-                        <Menu size={20} />
-                    </button>
-                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">Correio <span className="text-blue-600">Inbox</span></h2>
-                    <Zap className="text-blue-600 w-5 h-5"/>
+                <header className="h-16 lg:h-20 bg-white border-b border-slate-200 px-4 lg:px-12 flex items-center justify-between sticky top-0 z-30">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <button className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(true)}>
+                            <Menu size={20} />
+                        </button>
+                        <div className="hidden sm:flex w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg lg:rounded-xl items-center justify-center text-white shadow-lg shadow-blue-100 shrink-0">
+                            <Mail size={16} className="lg:w-5 lg:h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm lg:text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Centro de Mensagens</h2>
+                            <p className="hidden xs:block text-[8px] lg:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{activeFolder} MS360 Conectada</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => {
+                                setComposeData({ to: '', subject: '', body: '' });
+                                setIsComposeOpen(true);
+                            }}
+                            className="hidden sm:flex bg-blue-600 text-white font-black px-6 py-3 rounded-xl shadow-lg shadow-blue-100 items-center justify-center gap-3 hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest mr-4"
+                        >
+                            <Edit3 size={14}/> Compor
+                        </button>
+                        <div className="flex items-center gap-2">
+                            <Zap className="text-blue-600 w-4 h-4 lg:w-5 lg:h-5 animate-pulse" />
+                            <span className="hidden sm:inline text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Sync</span>
+                        </div>
+                    </div>
                 </header>
 
                 <div className="flex-1 flex h-full overflow-hidden">
-                    {/* Inbox Sidebar (Desktop) */}
-                    <div className="hidden lg:flex w-80 bg-white border-r border-slate-200 flex-col shrink-0">
-                        <div className="p-8 pb-4">
-                            <button className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-100 flex items-center justify-center gap-3 hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest">
-                                <Edit3 size={16}/> Compor Email
-                            </button>
-                        </div>
-                        <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
-                            {[
-                                { name: 'Entrada', icon: Inbox, count: 12, folder: 'INBOX' },
-                                { name: 'Enviados', icon: Send, folder: 'SENT' },
-                                { name: 'Lixo', icon: Trash, folder: 'TRASH' },
-                            ].map((f) => (
-                                <button
-                                    key={f.folder}
-                                    onClick={() => setActiveFolder(f.folder)}
-                                    className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl font-bold transition-all group ${
-                                        activeFolder === f.folder
-                                            ? 'bg-blue-50 text-blue-700'
-                                            : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-                                    }`}
-                                >
-                                    <div className="flex items-center">
-                                        <f.icon className={`w-5 h-5 mr-3 ${activeFolder === f.folder ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-600'}`} />
-                                        <span className="text-sm">{f.name}</span>
-                                    </div>
-                                    {f.count && <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${activeFolder === f.folder ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}>{f.count}</span>}
-                                </button>
-                            ))}
-                        </nav>
-                        <div className="p-8 border-t border-slate-100">
-                             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-[10px]">MS</div>
-                                <div><p className="text-[10px] font-black text-slate-900 leading-none">MS360 Suporte</p><p className="text-[8px] text-slate-400 font-bold uppercase leading-none mt-1">Conectado</p></div>
-                             </div>
-                        </div>
-                    </div>
-
                     {/* Message List */}
                     <div className={`flex-1 flex flex-col bg-white overflow-hidden transition-all duration-300 ${selectedMessage ? 'w-full lg:w-1/3' : 'w-full'}`}>
                          <div className="h-20 px-4 lg:px-8 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md sticky top-0 z-20">
@@ -103,7 +143,7 @@ const Mailbox: React.FC = () => {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18}/>
                                 <input className="w-full bg-slate-50 border-2 border-slate-50 pl-12 pr-4 py-3 rounded-xl focus:border-blue-200 outline-none transition-all font-bold text-sm" placeholder="Pesquisar mensagens..."/>
                              </div>
-                             <button onClick={fetchMessages} className="ml-4 p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                             <button onClick={() => fetchMessages(activeFolder)} className="ml-4 p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                                 <RefreshCcw size={18} className={loading ? 'animate-spin' : ''}/>
                              </button>
                          </div>
@@ -111,6 +151,12 @@ const Mailbox: React.FC = () => {
                          <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
                             {loading ? (
                                 <div className="p-20 text-center"><Loader2 className="animate-spin inline text-blue-600 mb-4" size={32}/><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">A carregar inbox...</p></div>
+                            ) : error ? (
+                                <div className="p-20 text-center flex flex-col items-center">
+                                    <X className="text-red-400 w-24 h-24 mb-4"/>
+                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">{error}</p>
+                                    <button onClick={() => fetchMessages(activeFolder)} className="mt-4 text-[10px] font-black text-blue-600 underline">Tentar novamente</button>
+                                </div>
                             ) : messages.length === 0 ? (
                                 <div className="p-20 text-center flex flex-col items-center">
                                     <Inbox className="text-slate-100 w-24 h-24 mb-4"/>
@@ -143,12 +189,18 @@ const Mailbox: React.FC = () => {
                                  <div className="flex items-center gap-4">
                                      <button onClick={() => setSelectedMessage(null)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg lg:hidden"><X size={20}/></button>
                                      <div className="flex items-center gap-4">
-                                        <button className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Trash size={18}/></button>
+                                        <button 
+                                            onClick={() => selectedMessage && handleDelete(selectedMessage.id)}
+                                            className="p-3 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                        ><Trash size={18}/></button>
                                         <button className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Star size={18}/></button>
                                      </div>
                                  </div>
                                  <div className="flex items-center gap-3">
-                                     <button className="bg-white border border-slate-200 p-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl text-slate-900 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm">Responder</button>
+                                     <button 
+                                        onClick={openReply}
+                                        className="bg-white border border-slate-200 p-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl text-slate-900 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm"
+                                     >Responder</button>
                                      <button className="p-3 text-slate-400"><MoreVertical size={18}/></button>
                                  </div>
                              </div>
@@ -200,6 +252,62 @@ const Mailbox: React.FC = () => {
                     )}
                 </div>
             </main>
+
+            {/* Compose Modal */}
+            {isComposeOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">Nova Mensagem</h3>
+                            <button onClick={() => setIsComposeOpen(false)} className="p-3 hover:bg-white rounded-2xl text-slate-400 transition-all"><X size={20}/></button>
+                        </div>
+                        <div className="p-8 space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-2 px-1">Para:</label>
+                                <input 
+                                    className="w-full bg-slate-50 border-2 border-slate-50 p-4 rounded-2xl focus:border-blue-200 outline-none transition-all font-bold text-sm"
+                                    placeholder="email@exemplo.com"
+                                    value={composeData.to}
+                                    onChange={e => setComposeData({...composeData, to: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-2 px-1">Assunto:</label>
+                                <input 
+                                    className="w-full bg-slate-50 border-2 border-slate-50 p-4 rounded-2xl focus:border-blue-200 outline-none transition-all font-bold text-sm"
+                                    placeholder="Assunto da mensagem"
+                                    value={composeData.subject}
+                                    onChange={e => setComposeData({...composeData, subject: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-2 px-1">Mensagem:</label>
+                                <textarea 
+                                    rows={8}
+                                    className="w-full bg-slate-50 border-2 border-slate-50 p-4 rounded-2xl focus:border-blue-200 outline-none transition-all font-medium text-sm resize-none"
+                                    placeholder="Escreva a sua mensagem aqui..."
+                                    value={composeData.body}
+                                    onChange={e => setComposeData({...composeData, body: e.target.value})}
+                                />
+                            </div>
+                        </div>
+                        <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-4">
+                            <button 
+                                onClick={() => setIsComposeOpen(false)}
+                                className="px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-white transition-all"
+                            >Cancelar</button>
+                            <button 
+                                onClick={handleSend}
+                                disabled={sending}
+                                className="bg-blue-600 text-white font-black px-12 py-4 rounded-2xl shadow-xl shadow-blue-100 flex items-center justify-center gap-3 hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest disabled:opacity-50"
+                            >
+                                {sending ? <Loader2 className="animate-spin" size={16}/> : <Send size={16}/>}
+                                {sending ? 'A enviar...' : 'Enviar Agora'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

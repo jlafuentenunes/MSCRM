@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Ticket, Plus, Clock, CheckCircle, AlertTriangle, 
-  Save, X, Layout, Zap, Menu, FileText, LayoutDashboard
+  Save, X, Zap, Menu, FileText, LayoutDashboard
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from './Sidebar';
@@ -101,17 +101,20 @@ const Tickets: React.FC = () => {
             <Sidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
-                <header className="h-16 lg:h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-12 flex items-center justify-between shrink-0 sticky top-0 z-30">
-                    <div className="flex items-center gap-4">
-                        <button className="lg:hidden p-2 text-slate-600 rounded-xl hover:bg-slate-50" onClick={() => setIsMenuOpen(true)}><Menu size={20}/></button>
+                <header className="h-16 lg:h-20 bg-white border-b border-slate-200 px-4 lg:px-12 flex items-center justify-between sticky top-0 z-30">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <button className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={() => setIsMenuOpen(true)}>
+                            <Menu size={20} />
+                        </button>
+                        <div className="hidden sm:flex w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-lg lg:rounded-xl items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0">
+                            <Ticket size={16} className="lg:w-5 lg:h-5" />
+                        </div>
                         <div>
-                            <h2 className="text-sm lg:text-xl font-black text-slate-800 tracking-tight leading-none uppercase italic">Tickets de Suporte</h2>
-                            <p className="text-[9px] lg:text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Incidências GLPI</p>
+                            <h2 className="text-sm lg:text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Suporte & Tickets</h2>
+                            <p className="hidden xs:block text-[8px] lg:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Incidências GLPI</p>
                         </div>
                     </div>
-                    <button onClick={() => setIsCreateModalOpen(true)} className="bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center gap-2">
-                        <Plus size={14}/> <span>Novo Ticket</span>
-                    </button>
+                    <button onClick={() => setIsCreateModalOpen(true)} className="bg-slate-900 shadow-xl shadow-slate-900/10 text-white px-4 py-2 lg:px-6 lg:py-3 rounded-xl lg:rounded-2xl font-black uppercase text-[10px] lg:text-xs tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all"> <Plus size={14} /> <span className="hidden sm:inline">Novo Ticket</span><span className="sm:hidden">Novo</span></button>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 lg:p-12 space-y-8">
